@@ -17,7 +17,7 @@ public class Vehicle {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private  Long id;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)

@@ -18,7 +18,7 @@ public class Driver {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
-    private Integer id;
+    private Long id;
 
     @Column(name = "name", nullable = false, length = 150)
     private String name;
@@ -35,4 +35,7 @@ public class Driver {
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
     private DriverStatus status;
+
+    @Column(name = "token", nullable = false)
+    private String token;
 }
