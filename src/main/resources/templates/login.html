@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PUTEVIK - Вход в систему</title>
+    <style>
+        :root {
+            --dark-gray: #333333;
+            --primary: #41B87C;
+            --secondary: #2C5DFC;
+            --bg: #F0F0F0;
+            --error: #ff4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: var(--dark-gray);
+        }
+
+        .login-container {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            width: 100%;
+            max-width: 400px;
+            transform: translateY(0);
+            animation: floatUp 0.6s ease-out forwards;
+            opacity: 0;
+            position: relative;
+        }
+
+        @keyframes floatUp {
+            from {
+                transform: translateY(20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: var(--dark-gray);
+            font-weight: 600;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--dark-gray);
+        }
+
+        input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        input:focus {
+            border-color: var(--primary);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(65, 184, 124, 0.2);
+        }
+
+        .password-container {
+            position: relative;
+        }
+
+        .toggle-password {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: var(--dark-gray);
+            opacity: 0.6;
+            transition: all 0.3s;
+        }
+
+        .toggle-password:hover {
+            opacity: 1;
+            color: var(--secondary);
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(44, 93, 252, 0.3);
+        }
+
+        .error-notification {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-100px);
+            background-color: var(--error);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            min-width: 300px;
+            opacity: 0;
+            transition: all 0.4s ease;
+        }
+
+        .error-notification.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+
+        .error-notification.hide {
+            transform: translateX(-50%) translateY(-100px);
+            opacity: 0;
+        }
+
+        .close-notification {
+            cursor: pointer;
+            margin-left: 15px;
+            font-weight: bold;
+            font-size: 18px;
+        }
+    </style>
+</head>
+<body>
+<div class="login-container">
+    <h2>Вход в систему PUTEVIK</h2>
+    <form th:action="@{/login}" method="post" id="loginForm">
+        <div class="form-group">
+            <label for="username">Имя пользователя</label>
+            <input type="text" id="username" name="username" placeholder="Введите имя пользователя" required>
+        </div>
+
+        <div class="form-group">
+            <label for="password">Пароль</label>
+            <div class="password-container">
+                <input type="password" id="password" name="password" placeholder="Введите пароль" required>
+                <span class="toggle-password" id="togglePassword">👁️</span>
+            </div>
+        </div>
+
+        <button type="submit" id="loginButton">Войти</button>
+    </form>
+</div>
+
+<!-- Уведомление об ошибке -->
+<div th:if="${param.error}" class="error-notification show" id="errorNotification">
+    <span>Ошибка входа: неверное имя пользователя или пароль</span>
+    <span class="close-notification" id="closeNotification">×</span>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const passwordInput = document.getElementById('password');
+        const togglePassword = document.getElementById('togglePassword');
+        const errorNotification = document.getElementById('errorNotification');
+        const closeNotification = document.getElementById('closeNotification');
+
+        // Toggle password visibility
+        if (togglePassword && passwordInput) {
+            togglePassword.addEventListener('click', function() {
+                const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+                passwordInput.setAttribute('type', type);
+                this.textContent = type === 'password' ? '👁️' : '👁️‍🗨️';
+            });
+        }
+
+        // Error notification logic only if it exists
+        if (errorNotification && closeNotification) {
+            // Закрыть уведомление об ошибке
+            closeNotification.addEventListener('click', hideError);
+
+            // Функция для отображения уведомления об ошибке
+            function showError() {
+                errorNotification.classList.remove('hide');
+                errorNotification.classList.add('show');
+
+                setTimeout(() => {
+                    hideError();
+                }, 2000);
+            }
+
+            // Функция для скрытия уведомления об ошибке
+            function hideError() {
+                errorNotification.classList.remove('show');
+                errorNotification.classList.add('hide');
+            }
+
+            showError();
+        }
+    });
+</script>
+</body>
+</html>

@@ -1,14 +1,14 @@
 package kill.me.dispatcher.services.core;
 
 import jakarta.persistence.EntityNotFoundException;
-import kill.me.dispatcher.entities.Driver;
-import kill.me.dispatcher.entities.Subtask;
-import kill.me.dispatcher.entities.Task;
-import kill.me.dispatcher.entities.Vehicle;
+import kill.me.dispatcher.entities.*;
 import kill.me.dispatcher.repos.*;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
+@Service
 public class MainEntitiesService {
 
     private DispatcherRepository dispatcherRepository;
@@ -16,6 +16,45 @@ public class MainEntitiesService {
     private TaskRepository taskRepository;
     private VehicleRepository vehicleRepository;
     private SubtaskRepository subtaskRepository;
+
+    public MainEntitiesService(DispatcherRepository dispatcherRepository, DriverRepository driverRepository, TaskRepository taskRepository, VehicleRepository vehicleRepository, SubtaskRepository subtaskRepository) {
+        this.dispatcherRepository = dispatcherRepository;
+        this.driverRepository = driverRepository;
+        this.taskRepository = taskRepository;
+        this.vehicleRepository = vehicleRepository;
+        this.subtaskRepository = subtaskRepository;
+    }
+
+    /**
+     *  ------------------------ DISPATCHER CRUDы ------------------------
+     */
+
+    public Dispatcher createDispatcher(Dispatcher dispatcher) {
+        return dispatcherRepository.save(dispatcher);
+    }
+
+    public Dispatcher updateDispatcher(Long id, Dispatcher updated) {
+        Dispatcher existing = dispatcherRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Dispatcher not found"));
+
+        if (updated.getFullName() != null) existing.setFullName(updated.getFullName());
+        if (updated.getUsername() != null) existing.setUsername(updated.getUsername());
+        if (updated.getPassword() != null) existing.setPassword(updated.getPassword());
+
+        return dispatcherRepository.save(existing);
+    }
+
+    public void deleteDispatcher(Long id) {
+        dispatcherRepository.deleteById(id);
+    }
+
+    public List<Dispatcher> getAllDispatchers() {
+        return dispatcherRepository.findAll();
+    }
+
+    public Optional<Dispatcher> getDispatcherById(Long id) {
+        return dispatcherRepository.findById(id);
+    }
 
     /**
      *  ------------------------ DRIVER CRUDы ------------------------
@@ -25,8 +64,8 @@ public class MainEntitiesService {
         return driverRepository.save(driver);
     }
 
-    public Driver updateDriver(Driver updatedDriver) {
-        Driver existing = driverRepository.findById(updatedDriver.getId())
+    public Driver updateDriver(Long id, Driver updatedDriver) {
+        Driver existing = driverRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Driver not found"));
 
         if (updatedDriver.getName() != null) existing.setName(updatedDriver.getName());
@@ -46,6 +85,10 @@ public class MainEntitiesService {
         return driverRepository.findAll();
     }
 
+    public Optional<Driver> getDriverById(Long id) {
+        return driverRepository.findById(id);
+    }
+
     /**
      *  ------------------------ VEHICLE CRUDы ------------------------
      */
@@ -54,8 +97,8 @@ public class MainEntitiesService {
         return vehicleRepository.save(vehicle);
     }
 
-    public Vehicle updateVehicle(Vehicle updated) {
-        Vehicle existing = vehicleRepository.findById(updated.getId())
+    public Vehicle updateVehicle(Long id, Vehicle updated) {
+        Vehicle existing = vehicleRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Vehicle not found"));
 
         if (updated.getModel() != null) existing.setModel(updated.getModel());
@@ -74,6 +117,10 @@ public class MainEntitiesService {
         return vehicleRepository.findAll();
     }
 
+    public Optional<Vehicle> getVehicleById(Long id) {
+        return vehicleRepository.findById(id);
+    }
+
     /**
      *  ------------------------ TASK CRUDы ------------------------
      */
@@ -82,8 +129,8 @@ public class MainEntitiesService {
         return taskRepository.save(task);
     }
 
-    public Task updateTask(Task updated) {
-        Task existing = taskRepository.findById(updated.getId())
+    public Task updateTask(Long id, Task updated) {
+        Task existing = taskRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Task not found"));
 
         if (updated.getStatus() != null) existing.setStatus(updated.getStatus());
@@ -104,6 +151,10 @@ public class MainEntitiesService {
         return taskRepository.findAll();
     }
 
+    public Optional<Task> getTaskById(Long id) {
+        return taskRepository.findById(id);
+    }
+
     /**
      *   ------------------------ SUBTASK CRUDы ------------------------
      */
@@ -112,8 +163,8 @@ public class MainEntitiesService {
         return subtaskRepository.save(subtask);
     }
 
-    public Subtask updateSubtask(Subtask updated) {
-        Subtask existing = subtaskRepository.findById(updated.getId())
+    public Subtask updateSubtask(Long id, Subtask updated) {
+        Subtask existing = subtaskRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Subtask not found"));
 
         if (updated.getStatus() != null) existing.setStatus(updated.getStatus());
@@ -130,5 +181,9 @@ public class MainEntitiesService {
 
     public List<Subtask> getAllSubtasks() {
         return subtaskRepository.findAll();
+    }
+
+    public Optional<Subtask> getSubtaskById(Long id) {
+        return subtaskRepository.findById(id);
     }
 }

@@ -8,17 +8,26 @@ import kill.me.dispatcher.repos.ClientRepository;
 import kill.me.dispatcher.repos.CommentRepository;
 import kill.me.dispatcher.repos.TaskLogRepository;
 import kill.me.dispatcher.repos.VehicleLogRepository;
+import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
+@Service
 public class SupEntitiesService {
 
     private CommentRepository commentRepository;
     private ClientRepository clientRepository;
     private VehicleLogRepository vehicleLogRepository;
     private TaskLogRepository taskLogRepository;
+
+    public SupEntitiesService(CommentRepository commentRepository, ClientRepository clientRepository, VehicleLogRepository vehicleLogRepository, TaskLogRepository taskLogRepository) {
+        this.commentRepository = commentRepository;
+        this.clientRepository = clientRepository;
+        this.vehicleLogRepository = vehicleLogRepository;
+        this.taskLogRepository = taskLogRepository;
+    }
 
     /**
      *  ------------------------ Comment CRUDы ------------------------

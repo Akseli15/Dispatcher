@@ -1,8 +1,5 @@
 package kill.me.dispatcher.entities.statuses;
 
-import lombok.Getter;
-
-@Getter
 public enum TaskStatus {
     EDITING("EDITING", "На редактировании"),
     READY("READY", "Готов к исполнению"),
@@ -23,5 +20,13 @@ public enum TaskStatus {
     @Override
     public String toString() {
         return code;
+    }
+
+    public String getCode() {
+        return code;
+    }
+
+    public String getDescription() {
+        return description;
     }
 }

@@ -2,16 +2,12 @@ package kill.me.dispatcher.entities;
 
 import jakarta.persistence.*;
 import kill.me.dispatcher.entities.statuses.VehicleStatus;
-import lombok.Getter;
-import lombok.Setter;
 
 /*
     Данные о транспортных средствах
 */
 
 @Entity
-@Getter
-@Setter
 @Table(name = "vehicle")
 public class Vehicle {
 
@@ -31,4 +27,44 @@ public class Vehicle {
 
     @Column(name = "model", nullable = false)
     private String model;
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public VehicleStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(VehicleStatus status) {
+        this.status = status;
+    }
+
+    public String getRegistrationNumber() {
+        return registrationNumber;
+    }
+
+    public void setRegistrationNumber(String registrationNumber) {
+        this.registrationNumber = registrationNumber;
+    }
+
+    public Double getMaxLoad() {
+        return maxLoad;
+    }
+
+    public void setMaxLoad(Double maxLoad) {
+        this.maxLoad = maxLoad;
+    }
+
+    public String getModel() {
+        return model;
+    }
+
+    public void setModel(String model) {
+        this.model = model;
+    }
 }

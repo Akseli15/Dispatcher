@@ -2,8 +2,6 @@ package kill.me.dispatcher.entities;
 
 import jakarta.persistence.*;
 import kill.me.dispatcher.entities.statuses.SubtaskStatus;
-import lombok.Getter;
-import lombok.Setter;
 
 import java.time.LocalDateTime;
 
@@ -12,8 +10,6 @@ import java.time.LocalDateTime;
 */
 
 @Entity
-@Getter
-@Setter
 @Table(name = "subtask")
 public class Subtask {
 
@@ -36,4 +32,40 @@ public class Subtask {
 
     @Column(name = "unloading_time")
     private LocalDateTime unloadingTime;
+
+    public Long getId() {
+        return id;
+    }
+
+    public Task getTask() {
+        return task;
+    }
+
+    public Client getClient() {
+        return client;
+    }
+
+    public SubtaskStatus getStatus() {
+        return status;
+    }
+
+    public LocalDateTime getUnloadingTime() {
+        return unloadingTime;
+    }
+
+    public void setTask(Task task) {
+        this.task = task;
+    }
+
+    public void setClient(Client client) {
+        this.client = client;
+    }
+
+    public void setStatus(SubtaskStatus status) {
+        this.status = status;
+    }
+
+    public void setUnloadingTime(LocalDateTime unloadingTime) {
+        this.unloadingTime = unloadingTime;
+    }
 }

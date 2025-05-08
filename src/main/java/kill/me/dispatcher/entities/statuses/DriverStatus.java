@@ -1,8 +1,6 @@
 package kill.me.dispatcher.entities.statuses;
 
-import lombok.Getter;
 
-@Getter
 public enum DriverStatus {
     OFF_DUTY("OFF_DUTY", "Не работает"),
     AVAILABLE("AVAILABLE", "Свободен"),
@@ -19,6 +17,14 @@ public enum DriverStatus {
     @Override
     public String toString() {
         return code;
+    }
+
+    public String getCode() {
+        return code;
+    }
+
+    public String getDescription() {
+        return description;
     }
 }
 

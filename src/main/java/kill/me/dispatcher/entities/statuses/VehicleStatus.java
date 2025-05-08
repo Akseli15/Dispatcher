@@ -1,8 +1,5 @@
 package kill.me.dispatcher.entities.statuses;
 
-import lombok.Getter;
-
-@Getter
 public enum VehicleStatus {
     MAINTENANCE_REQUIRED("MAINTENANCE_REQUIRED", "Требуется ТО"),
     UNDER_MAINTENANCE("UNDER_MAINTENANCE", "Проходит ТО"),
@@ -20,6 +17,14 @@ public enum VehicleStatus {
     @Override
     public String toString() {
         return code;
+    }
+
+    public String getCode() {
+        return code;
+    }
+
+    public String getDescription() {
+        return description;
     }
 }
 

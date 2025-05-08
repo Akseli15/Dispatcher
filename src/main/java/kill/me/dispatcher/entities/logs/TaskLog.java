@@ -3,8 +3,6 @@ package kill.me.dispatcher.entities.logs;
 import jakarta.persistence.*;
 import kill.me.dispatcher.entities.statuses.TaskStatus;
 import kill.me.dispatcher.entities.Task;
-import lombok.Getter;
-import lombok.Setter;
 
 import java.time.LocalDateTime;
 
@@ -13,8 +11,6 @@ import java.time.LocalDateTime;
  */
 
 @Entity
-@Getter
-@Setter
 @Table(name = "task_log")
 public class TaskLog {
 
@@ -33,4 +29,36 @@ public class TaskLog {
 
     @Column(name = "status_changed_at", nullable = false)
     private LocalDateTime statusChangedAt;
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public Task getTask() {
+        return task;
+    }
+
+    public void setTask(Task task) {
+        this.task = task;
+    }
+
+    public TaskStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(TaskStatus status) {
+        this.status = status;
+    }
+
+    public LocalDateTime getStatusChangedAt() {
+        return statusChangedAt;
+    }
+
+    public void setStatusChangedAt(LocalDateTime statusChangedAt) {
+        this.statusChangedAt = statusChangedAt;
+    }
 }

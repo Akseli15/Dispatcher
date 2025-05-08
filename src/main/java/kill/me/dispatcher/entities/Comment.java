@@ -1,8 +1,6 @@
 package kill.me.dispatcher.entities;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
 
 import java.time.LocalDateTime;
 
@@ -11,8 +9,6 @@ import java.time.LocalDateTime;
  */
 
 @Entity
-@Getter
-@Setter
 @Table(name = "comment")
 public class Comment {
 
@@ -33,4 +29,40 @@ public class Comment {
     @ManyToOne
     @JoinColumn(name = "task_id", referencedColumnName = "id", nullable = false)
     private Task task;
+
+    public Long getId() {
+        return id;
+    }
+
+    public String getText() {
+        return text;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public String getAuthorFullName() {
+        return authorFullName;
+    }
+
+    public Task getTask() {
+        return task;
+    }
+
+    public void setText(String text) {
+        this.text = text;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public void setAuthorFullName(String authorFullName) {
+        this.authorFullName = authorFullName;
+    }
+
+    public void setTask(Task task) {
+        this.task = task;
+    }
 }

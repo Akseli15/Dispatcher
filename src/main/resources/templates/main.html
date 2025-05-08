@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PUTEVIK - Диспетчеры</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/styles.css" rel="stylesheet">
+</head>
+<body>
+<div class="sidebar">
+    <div class="sidebar-top">
+        <div class="sidebar-brand">PUTEVIK</div>
+        <div class="sidebar-menu">
+            <div class="sidebar-item active" data-section="tasks">Маршрутные листы</div>
+            <div class="sidebar-item" data-section="drivers">Водители</div>
+            <div class="sidebar-item" data-section="vehicles">Транспортные средства</div>
+            <div class="sidebar-item" data-section="clients">Клиенты</div>
+            <div class="sidebar-item" data-section="dispatchers">Диспетчеры</div>
+            <div class="sidebar-item collapsible" data-toggle="reports">Отчёты</div>
+            <div class="submenu" data-target="reports">
+                <div class="sidebar-subitem" data-section="driverReports">Отчёты по водителям</div>
+                <div class="sidebar-subitem" data-section="routeReports">Отчёты по маршрутным листам</div>
+            </div>
+
+            <div class="sidebar-item collapsible" data-toggle="logs">Журналы</div>
+            <div class="submenu" data-target="logs">
+                <div class="sidebar-subitem" data-section="vehicleLog">Журнал эксплуатации ТС</div>
+                <div class="sidebar-subitem" data-section="routeLog">Журнал маршрутных листов</div>
+            </div>
+
+        </div>
+    </div>
+
+    <form th:action="@{/logout}" method="post" class="sidebar-bottom">
+        <button type="submit" class="sidebar-item logout-btn">Выйти из аккаунта</button>
+    </form>
+</div>
+
+<div class="main-content">
+</div>
+
+<script src="/js/scripts.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

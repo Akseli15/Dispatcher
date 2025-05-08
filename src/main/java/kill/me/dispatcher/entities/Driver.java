@@ -2,16 +2,12 @@ package kill.me.dispatcher.entities;
 
 import jakarta.persistence.*;
 import kill.me.dispatcher.entities.statuses.DriverStatus;
-import lombok.Getter;
-import lombok.Setter;
 
 /*
     Данные о водителе
  */
 
 @Entity
-@Getter
-@Setter
 @Table(name ="driver")
 public class Driver {
 
@@ -38,4 +34,56 @@ public class Driver {
 
     @Column(name = "token", nullable = false)
     private String token;
+
+    public Long getId() {
+        return id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getChatId() {
+        return chatId;
+    }
+
+    public String getPhoneNumber() {
+        return phoneNumber;
+    }
+
+    public String getSchedule() {
+        return schedule;
+    }
+
+    public DriverStatus getStatus() {
+        return status;
+    }
+
+    public String getToken() {
+        return token;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setChatId(String chatId) {
+        this.chatId = chatId;
+    }
+
+    public void setPhoneNumber(String phoneNumber) {
+        this.phoneNumber = phoneNumber;
+    }
+
+    public void setSchedule(String schedule) {
+        this.schedule = schedule;
+    }
+
+    public void setStatus(DriverStatus status) {
+        this.status = status;
+    }
+
+    public void setToken(String token) {
+        this.token = token;
+    }
 }

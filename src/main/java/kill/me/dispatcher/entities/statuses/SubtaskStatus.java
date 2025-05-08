@@ -1,8 +1,6 @@
 package kill.me.dispatcher.entities.statuses;
 
-import lombok.Getter;
 
-@Getter
 public enum SubtaskStatus {
     PENDING("PENDING", "В ожидании"),
     IN_PROGRESS("IN_PROGRESS", "Выполняется"),
@@ -20,5 +18,13 @@ public enum SubtaskStatus {
     @Override
     public String toString() {
         return code;
+    }
+
+    public String getCode() {
+        return code;
+    }
+
+    public String getDescription() {
+        return description;
     }
 }
