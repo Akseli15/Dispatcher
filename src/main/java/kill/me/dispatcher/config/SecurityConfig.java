@@ -21,19 +21,22 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .authorizeHttpRequests(authz -> authz
-                        .requestMatchers("/login", "/static/css/**", "/js/**").permitAll()
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/css/**", "/js/**", "/images/**", "/login", "/register").permitAll()
                         .anyRequest().authenticated()
                 )
                 .formLogin(form -> form
                         .loginPage("/login")
-                        .failureUrl("/login?error=true")  // Указание URL для отображения ошибки
-                        .defaultSuccessUrl("/main", true)  // После успешного входа перенаправляет на /main
                         .permitAll()
+                        .defaultSuccessUrl("/main", true) // страница после входа
                 )
-                .logout(logout -> logout.permitAll());
+                .logout(logout -> logout
+                        .logoutUrl("/logout")
+                        .logoutSuccessUrl("/login?logout")
+                        .permitAll()
+                ).csrf(csrf -> csrf.disable());;
 
         return http.build();
     }

@@ -2,10 +2,15 @@ package kill.me.dispatcher.services.core;
 
 import jakarta.persistence.EntityNotFoundException;
 import kill.me.dispatcher.entities.*;
+import kill.me.dispatcher.entities.statuses.DriverStatus;
+import kill.me.dispatcher.entities.statuses.TaskStatus;
 import kill.me.dispatcher.repos.*;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -155,6 +160,40 @@ public class MainEntitiesService {
         return taskRepository.findById(id);
     }
 
+    // Получение количества выполненных задач за период по водителю
+    public long getCompletedTaskCountForDriverBetweenDates(Driver driver, LocalDateTime start, LocalDateTime end) {
+        return taskRepository.countCompletedTasksBetweenDates(driver, start, end);
+    }
+
+    // Получение средней продолжительности выполнения задачи по каждому водителю
+    public Map<Long, Double> getAverageTaskDurationByDriver() {
+        List<Object[]> results = taskRepository.findAvgTaskDurationByDriver();
+        Map<Long, Double> avgDurations = new HashMap<>();
+        for (Object[] row : results) {
+            Long driverId = (Long) row[0];
+            Double avgDuration = (Double) row[1]; // в миллисекундах (если cast long → timestamp diff in ms)
+            avgDurations.put(driverId, avgDuration);
+        }
+        return avgDurations;
+    }
+
+    // Фильтрация задач по параметрам
+    public List<Task> filterTasks(TaskStatus status,
+                                  Driver driver,
+                                  Dispatcher dispatcher,
+                                  LocalDateTime createdFrom,
+                                  LocalDateTime createdTo,
+                                  LocalDateTime completedFrom,
+                                  LocalDateTime completedTo) {
+        return taskRepository.filterTasks(status, driver, dispatcher, createdFrom, createdTo, completedFrom, completedTo);
+    }
+
+    public String generateNextTaskNumber() {
+        Integer maxNumber = taskRepository.findMaxTaskNumber();
+        int next = (maxNumber != null ? maxNumber : 0) + 1;
+        return String.format("%04d", next);
+    }
+
     /**
      *   ------------------------ SUBTASK CRUDы ------------------------
      */
@@ -186,4 +225,6 @@ public class MainEntitiesService {
     public Optional<Subtask> getSubtaskById(Long id) {
         return subtaskRepository.findById(id);
     }
+
+    public List<Subtask> getAllSubtasksById(Long taskId) { return subtaskRepository.findAllByTaskId(taskId);}
 }

@@ -6,4 +6,7 @@ import java.util.Optional;
 
 public interface DispatcherRepository extends JpaRepository<Dispatcher, Long> {
     Optional<Dispatcher> findByUsername(String username);
+
+    Dispatcher findDispatcherByUsername(String username);
+    Dispatcher getById(Long id);
 }

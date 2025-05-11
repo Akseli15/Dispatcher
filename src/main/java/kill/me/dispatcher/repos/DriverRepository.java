@@ -6,4 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface DriverRepository extends JpaRepository<Driver, Long> {
 
     Driver findDriverByChatId(String chatId);
+
+    Driver getById(Long id);
+
 }

@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>
+    body { font-family: "Times New Roman", serif; font-size: 12pt; }
+    .header { text-align: center; margin-bottom: 20px; }
+    .title { font-weight: bold; text-decoration: underline; }
+    .info-block { margin: 15px 0; }
+    table { width: 100%; border-collapse: collapse; margin: 15px 0; }
+    th, td { border: 1px solid black; padding: 5px; text-align: center; }
+    .signature { margin-top: 30px; text-align: right; }
+    .underline { text-decoration: underline; display: inline-block; min-width: 200px; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="title">МАРШРУТНЫЙ ЛИСТ № {{documentNumber}}</div>
+    <div>работника "{{organizationName}}"</div>
+    <div>на "{{documentDate}}"</div>
+  </div>
+
+  <div class="info-block">
+    <div>Работник: <span class="underline">{{employeeFullName}}</span></div>
+    <div>Должность: <span class="underline">{{employeePosition}} ({{department}})</span></div>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>№ п/п</th>
+        <th>Наименование организации</th>
+        <th>Адрес</th>
+        <th>Цель поездки</th>
+        <th>Вид транспорта</th>
+        <th>Подтверждающий документ</th>
+        <th>Время (ч, мин.)</th>
+        <th>Подпись принимающей стороны</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{#each routes}}
+      <tr>
+        <td>{{@index}}</td>
+        <td>{{organization}}</td>
+        <td>{{address}}</td>
+        <td>{{purpose}}</td>
+        <td>{{transportType}}</td>
+        <td>{{confirmationDoc}}</td>
+        <td>{{time}}</td>
+        <td></td>
+      </tr>
+      {{/each}}
+    </tbody>
+  </table>
+
+  <div class="signature">
+    Маршрутный лист выдан "{{issueDate}}" в {{issueTime}}
+  </div>
+</body>
+<script>
+    const puppeteer = require('puppeteer');
+const handlebars = require('handlebars');
+const fs = require('fs').promises;
+const path = require('path');
+
+async function generateRouteList(data) {
+  try {
+    // 1. Загрузка шаблона
+    const templatePath = path.join(__dirname, 'template.hbs');
+    const html = await fs.readFile(templatePath, 'utf8');
+
+    // 2. Компиляция шаблона
+    const template = handlebars.compile(html);
+    const content = template(data);
+
+    // 3. Создание PDF
+    const browser = await puppeteer.launch({ headless: "new" });
+    const page = await browser.newPage();
+
+    await page.setContent(content);
+    const pdf = await page.pdf({
+      format: 'A4',
+      margin: { top: '20px', right: '20px', bottom: '20px', left: '20px' }
+    });
+
+    await browser.close();
+
+    // 4. Сохранение файла
+    const outputPath = path.join(__dirname, `Маршрутный_лист_${data.documentNumber}.pdf`);
+    await fs.writeFile(outputPath, pdf);
+
+    console.log(`PDF создан: ${outputPath}`);
+    return outputPath;
+  } catch (error) {
+    console.error('Ошибка генерации PDF:', error);
+    throw error;
+  }
+}
+
+// Пример данных из БД
+const sampleData = {
+  documentNumber: "123-456",
+  organizationName: "ООО 'Транспортные решения'",
+  documentDate: "15 мая 2024 г.",
+  employeeFullName: "Иванов Иван Иванович",
+  employeePosition: "Водитель",
+  department: "Транспортный отдел",
+  routes: [
+    {
+      organization: "ООО 'Грузоперевозки'",
+      address: "г. Москва, ул. Ленина, 10",
+      purpose: "Доставка товара",
+      transportType: "Грузовой автомобиль",
+      confirmationDoc: "Накладная №45",
+      time: "2 ч 30 мин"
+    },
+    {
+      organization: "ИП Петров П.П.",
+      address: "г. Москва, ул. Гагарина, 5",
+      purpose: "Забор образцов",
+      transportType: "Легковой автомобиль",
+      confirmationDoc: "Доверенность №12",
+      time: "1 ч 15 мин"
+    }
+  ],
+  issueDate: "15 мая 2024 г.",
+  issueTime: "08:30"
+};
+
+// Запуск генерации
+generateRouteList(sampleData);
+</script>
+</html>

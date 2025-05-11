@@ -3,14 +3,24 @@ package kill.me.dispatcher.controllers;
 import kill.me.dispatcher.entities.*;
 import kill.me.dispatcher.entities.logs.TaskLog;
 import kill.me.dispatcher.entities.logs.VehicleLog;
+import kill.me.dispatcher.entities.statuses.DriverStatus;
+import kill.me.dispatcher.entities.statuses.TaskStatus;
+import kill.me.dispatcher.repos.DispatcherRepository;
+import kill.me.dispatcher.repos.DriverRepository;
 import kill.me.dispatcher.services.core.MainEntitiesService;
 import kill.me.dispatcher.services.core.SupEntitiesService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api")
@@ -22,12 +32,23 @@ public class WebControllers {
     @Autowired
     private SupEntitiesService supService;
 
+    @Autowired
+    private DriverRepository driverRepository;
+    @Autowired
+    private DispatcherRepository dispatcherRepository;
+
     // ---------- Dispatcher ----------
     @PostMapping("/dispatchers")
     @PreAuthorize("hasRole('ADMIN')")
     public Dispatcher createDispatcher(@RequestBody Dispatcher dispatcher) {
         dispatcher.setRole("DISPATCHER");
         return service.createDispatcher(dispatcher);
+    }
+
+    @GetMapping("/dispatchers/me")
+    public ResponseEntity<Dispatcher> getCurrentDispatcher(@AuthenticationPrincipal UserDetails userDetails) {
+        Dispatcher dispatcher = dispatcherRepository.findDispatcherByUsername(userDetails.getUsername());
+        return dispatcher != null ? ResponseEntity.ok(dispatcher) : ResponseEntity.notFound().build();
     }
 
     @GetMapping("/dispatchers")
@@ -81,6 +102,7 @@ public class WebControllers {
     // ---------- Task ----------
     @PostMapping("/tasks")
     public Task createTask(@RequestBody Task task) {
+        task.setTaskNumber(service.generateNextTaskNumber());
         return service.createTask(task);
     }
 
@@ -102,6 +124,38 @@ public class WebControllers {
     @DeleteMapping("/tasks/{id}")
     public void deleteTask(@PathVariable Long id) {
         service.deleteTask(id);
+    }
+
+    // Получение количества выполненных задач по водителю за период
+    @GetMapping("/tasks/completed-count")
+    public long getCompletedTaskCount(
+            @RequestParam Long driverId,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime start,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end) {
+        Driver driver = driverRepository.getById(driverId);
+        return service.getCompletedTaskCountForDriverBetweenDates(driver, start, end);
+    }
+
+    // Получение средней продолжительности выполнения задач по водителям
+    @GetMapping("/tasks/avg-duration")
+    public Map<Long, Double> getAvgTaskDurationByDriver() {
+        return service.getAverageTaskDurationByDriver();
+    }
+
+    // Фильтрация задач по параметрам
+    @GetMapping("/tasks/filter")
+    public List<Task> filterTasks(
+            @RequestParam(required = false) TaskStatus status,
+            @RequestParam(required = false) Long driverId,
+            @RequestParam(required = false) Long dispatcherId,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime createdFrom,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime createdTo,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime completedFrom,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime completedTo) {
+        Driver driver = driverRepository.getById(driverId);
+        Dispatcher dispatcher = dispatcherRepository.getById(dispatcherId);
+
+        return service.filterTasks(status, driver, dispatcher, createdFrom, createdTo, completedFrom, completedTo);
     }
 
     // ---------- Vehicle ----------
@@ -139,6 +193,11 @@ public class WebControllers {
     @GetMapping("/subtasks")
     public List<Subtask> getAllSubtasks() {
         return service.getAllSubtasks();
+    }
+
+    @GetMapping("/subtasks/task/{taskId}")
+    public List<Subtask> getAllSubtasksByTaskId(@PathVariable Long taskId) {
+        return service.getAllSubtasksById(taskId);
     }
 
     @GetMapping("/subtasks/{id}")

@@ -2,6 +2,8 @@ package kill.me.dispatcher.entities;
 
 import jakarta.persistence.*;
 import kill.me.dispatcher.entities.statuses.TaskStatus;
+import org.hibernate.annotations.CreationTimestamp;
+
 import java.time.LocalDateTime;
 
 /*
@@ -20,7 +22,8 @@ public class Task {
     @Column(name = "task_number", nullable = false, unique = true)
     private String taskNumber;
 
-    @Column(name = "created_at", nullable = false)
+    @Column(name = "created_at", nullable = false, updatable = false)
+    @CreationTimestamp
     private LocalDateTime createdAt;
 
     @Column(name = "completed_at")

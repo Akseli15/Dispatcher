@@ -223,10 +223,28 @@ body {
 }
 
 .btn-primary {
-    background: linear-gradient(90deg, var(--primary), var(--secondary));
+    background: #333333;
     border: none;
+    vertical-align: middle;
+    text-align: center;
+    color:white;
+    font-weight: bold;
+    padding: 7px;
+    border-radius: 7px;
+    padding-inline: 20px;
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
 }
 
 .btn-primary:hover {
     background: linear-gradient(90deg, #38a06b, #1a4bdb);
+}
+
+.username-overlay {
+    position: fixed;
+    top: 10px;
+    right: 20px;
+    padding: 10px 20px;
+    color: #333333;
+    font-size: 18px;
+    z-index: 1000;
 }
