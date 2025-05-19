@@ -79,7 +79,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         return;
     }
 
-    await loadDropdownData(); // загрузка водителей, ТС и заполнение select'ов
+    await loadDropdownData(taskId);
 
     // Загрузка данных задачи
     fetch(`/api/tasks/${taskId}`)
@@ -141,51 +141,34 @@ document.addEventListener("DOMContentLoaded", async () => {
         .catch(err => console.error("Ошибка при загрузке подзадач:", err));
 });
 
-async function loadDropdownData() {
+async function loadDropdownData(taskId) {
+    const taskStatusDescriptions = {
+        "EDITING": "⚪ На редактировании",
+        "READY": "🟢 Готов к исполнению",
+        "IN_PROGRESS": "🔵 Выполняется",
+        "COMPLETED": "🟡 Завершён",
+        "CLOSED": "🟢 Закрыт",
+        "CANCELED": "⚫ Отменён",
+        "ISSUE": "🔴 Проблема на рейсе"
+    };
+
     try {
-        const [driversRes, vehiclesRes] = await Promise.all([
-            fetch('/api/drivers'),
-            fetch('/api/vehicles')
+        const [TasksRes, vehiclesRes] = await Promise.all([
+            fetch('/api/tasks/'+ taskId)
         ]);
 
-        const drivers = await driversRes.json();
-        const vehicles = await vehiclesRes.json();
+        const taskData = await TasksRes.json();
 
-        const driverSelect = document.getElementById("driverSelect");
-        drivers.forEach(driver => {
-            const option = document.createElement("option");
-            option.value = driver.id;
-            option.textContent = driver.name;
-            driverSelect.appendChild(option);
-        });
+        const driverInput = document.getElementById("driverInput");
+        const vehicleInput = document.getElementById("vehicleInput");
+        const statusInput = document.getElementById("statusInput");
 
-        const vehicleSelect = document.getElementById("vehicleSelect");
-        vehicles.forEach(vehicle => {
-            const option = document.createElement("option");
-            option.value = vehicle.id;
-            option.textContent = `${vehicle.registrationNumber} ${vehicle.model}`;
-            vehicleSelect.appendChild(option);
-        });
-
-        const statusSelect = document.getElementById("statusSelect");
-        const statuses = [
-            { value: "EDITING", label: "На редактировании" },
-            { value: "READY", label: "Готов к исполнению" },
-            { value: "IN_PROGRESS", label: "Выполняется" },
-            { value: "COMPLETED", label: "Завершён" },
-            { value: "CLOSED", label: "Закрыт" },
-            { value: "CANCELED", label: "Отменён" },
-            { value: "ISSUE", label: "Проблема на рейсе" },
-        ];
-        statuses.forEach(status => {
-            const option = document.createElement("option");
-            option.value = status.value;
-            option.textContent = status.label;
-            statusSelect.appendChild(option);
-        });
+        driverInput.value = taskData.driver.name;
+        vehicleInput.value = `${taskData.vehicle.registrationNumber} ${taskData.vehicle.model}`;
+        statusInput.value = taskStatusDescriptions[taskData.status] || taskData.status;
 
     } catch (error) {
-        console.error("Ошибка при загрузке данных для select:", error);
+        console.error("Ошибка при загрузке данных:", error);
     }
 }
 

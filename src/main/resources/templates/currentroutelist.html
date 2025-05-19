@@ -38,31 +38,29 @@
     </form>
 </div>
 
-<p class="username-overlay" ><strong th:text="${username}"></strong></p>
+<p class="username-overlay" >Пользователь:  <strong th:text="${username}"></strong></p>
 <div class="main-content">
-    <div>
-        <h2>Маршрутный лист №<span id="task-number">Загрузка...</span></h2>
-        <button class="btn-primary" onClick="handleAddSubtask(taskId)" style="margin-bottom: 10px;">Добавить точку маршрута</button>
+    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 20px">
+        <h2 style="margin: 0;">Маршрутный лист №<span id="task-number">Загрузка...</span></h2>
+        <button class="btn-primary" onClick="handleAddSubtask(taskId)">Добавить точку маршрута</button>
+        <button class="btn-primary" onClick="handleTaskEdit(taskId)">Изменить данные</button>
     </div>
 
     <div class="d-flex gap-3 mb-3">
 
         <div class="flex-fill">
-            <label for="driverSelect" class="form-label">Водитель</label>
-            <select class="form-select" id="driverSelect">
-            </select>
+            <label for="driverInput" class="form-label">Водитель</label>
+            <input type="text" id="driverInput" class="form-control" readonly>
         </div>
 
         <div class="flex-fill">
-            <label for="vehicleSelect" class="form-label">Транспортное средство</label>
-            <select class="form-select" id="vehicleSelect">
-            </select>
+            <label for="vehicleInput" class="form-label">Транспортное средство</label>
+            <input type="text" id="vehicleInput" class="form-control" readonly>
         </div>
 
         <div class="flex-fill">
-            <label for="statusSelect" class="form-label">Статус</label>
-            <select class="form-select" id="statusSelect">
-            </select>
+            <label for="statusInput" class="form-label">Статус</label>
+            <input type="text" id="statusInput" class="form-control" readonly>
         </div>
 
     </div>

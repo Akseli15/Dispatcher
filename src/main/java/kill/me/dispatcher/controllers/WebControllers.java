@@ -28,10 +28,8 @@ public class WebControllers {
 
     @Autowired
     private MainEntitiesService service;
-
     @Autowired
     private SupEntitiesService supService;
-
     @Autowired
     private DriverRepository driverRepository;
     @Autowired

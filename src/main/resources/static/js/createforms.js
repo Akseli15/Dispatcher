@@ -1,3 +1,15 @@
+const driverStatusDescriptions = {
+    "OFF_DUTY": "⚪ Не работает",
+    "AVAILABLE": "🟢 Свободен",
+    "ON_ROUTE": "🔵 В рейсе"
+};
+
+const vehicleStatusDescriptions = {
+    "MAINTENANCE_REQUIRED": "🔴 Требуется ТО",
+    "UNDER_MAINTENANCE": "🟠 Проходит ТО",
+    "AVAILABLE": "🟢 Свободно",
+    "ON_ROUTE": "🔵 В рейсе"
+};
 async function sendCreateRequest(url, data) {
     const response = await fetch(url, {
         method: 'POST',
@@ -202,11 +214,13 @@ async function handleAddTask() {
         const currentDispatcher = await currentDispatcherRes.json();
 
         const driverOptions = drivers.map(driver =>
-            `<option value="${driver.id}">${driver.name}</option>`
+            `<option value="${driver.id}">${driver.name} (${driverStatusDescriptions[driver.status] || driver.status})</option>`
         ).join('');
+
         const vehicleOptions = vehicles.map(vehicle =>
-            `<option value="${vehicle.id}">${vehicle.registrationNumber} (${vehicle.model})</option>`
+            `<option value="${vehicle.id}">${vehicle.registrationNumber} (${vehicle.model}) - ${vehicleStatusDescriptions[vehicle.status] || vehicle.status}</option>`
         ).join('');
+
 
         const formContent =
             `<form id="addTaskForm">
@@ -236,10 +250,6 @@ async function handleAddTask() {
                         <option value="ISSUE">Проблема на рейсе</option>
                     </select>
                 </div>
-                <div class="mb-3">
-                    <label for="taskCompletedAt" class="form-label">Дата выполнения</label>
-                    <input type="datetime-local" class="form-control" id="taskCompletedAt">
-                </div>
             </form>`;
 
         showModal('Создание маршрутного листа', formContent, async () => {
@@ -248,7 +258,7 @@ async function handleAddTask() {
                 vehicle: { id: document.getElementById('taskVehicle').value },
                 dispatcher: { id: currentDispatcher.id },
                 status: document.getElementById('taskStatus').value,
-                completedAt: document.getElementById('taskCompletedAt').value || null
+                completedAt: null
             };
 
             const response = await sendCreateRequest('/api/tasks', newTask);

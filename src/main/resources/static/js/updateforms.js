@@ -139,9 +139,9 @@ function handleDriverEdit(id) {
                     <div class="mb-3">
                         <label for="driverStatus" class="form-label">Статус</label>
                         <select class="form-select" id="driverStatus" required>
-                            <option value="OFF_DUTY" ${driver.status === 'OFF_DUTY' ? 'selected' : ''}>Не работает</option>
-                            <option value="AVAILABLE" ${driver.status === 'AVAILABLE' ? 'selected' : ''}>Свободен</option>
-                            <option value="ON_ROUTE" ${driver.status === 'ON_ROUTE' ? 'selected' : ''}>В рейсе</option>
+                            <option value="OFF_DUTY" ${driver.status === 'OFF_DUTY' ? 'selected' : ''}>⚪ Не работает</option>
+                            <option value="AVAILABLE" ${driver.status === 'AVAILABLE' ? 'selected' : ''}>🟢 Свободен</option>
+                            <option value="ON_ROUTE" ${driver.status === 'ON_ROUTE' ? 'selected' : ''}>🔵 В рейсе</option>
                         </select>
                     </div>
                 </form>
@@ -218,55 +218,71 @@ function handleTaskEdit(id) {
             return res.json();
         })
         .then(task => {
-            // Сначала загружаем список водителей
-            fetch('/api/drivers')
-                .then(res => {
+            // Загружаем водителей и транспорт одновременно
+            Promise.all([
+                fetch('/api/drivers').then(res => {
                     if (!res.ok) throw new Error('Не удалось загрузить список водителей');
                     return res.json();
+                }),
+                fetch('/api/vehicles').then(res => {
+                    if (!res.ok) throw new Error('Не удалось загрузить список транспорта');
+                    return res.json();
                 })
-                .then(drivers => {
-                    // Строим выпадающий список водителей
+            ])
+                .then(([drivers, vehicles]) => {
                     const driverOptions = drivers.map(driver =>
                         `<option value="${driver.id}" ${driver.id === task.driver.id ? 'selected' : ''}>${driver.name}</option>`
                     ).join('');
 
+                    const vehicleOptions = vehicles.map(vehicle =>
+                        `<option value="${vehicle.id}" ${vehicle.id === task.vehicle.id ? 'selected' : ''}>${vehicle.registrationNumber} ${vehicle.model}</option>`
+                    ).join('');
+
                     const formContent = `
-                        <form id="editTaskForm">
-                            <div class="mb-3">
-                                <label for="taskNumber" class="form-label">Номер</label>
-                                <input disabled type="text" class="form-control" id="taskNumber" value="${task.taskNumber || ''}" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="taskStatus" class="form-label">Статус</label>
-                                <select class="form-select" id="taskStatus" required>
-                                    <option value="EDITING" ${task.status === 'EDITING' ? 'selected' : ''}>На редактировании</option>
-                                    <option value="READY" ${task.status === 'READY' ? 'selected' : ''}>Готов к исполнению</option>
-                                    <option value="IN_PROGRESS" ${task.status === 'IN_PROGRESS' ? 'selected' : ''}>Выполняется</option>
-                                    <option value="COMPLETED" ${task.status === 'COMPLETED' ? 'selected' : ''}>Завершён</option>
-                                    <option value="CLOSED" ${task.status === 'CLOSED' ? 'selected' : ''}>Закрыт</option>
-                                    <option value="CANCELED" ${task.status === 'CANCELED' ? 'selected' : ''}>Отменён</option>
-                                    <option value="ISSUE" ${task.status === 'ISSUE' ? 'selected' : ''}>Проблема на рейсе</option>
-                                </select>
-                            </div>
-                            <div class="mb-3">
-                                <label for="taskDriver" class="form-label">Водитель</label>
-                                <select class="form-select" id="taskDriver" required>
-                                    <option value="">Выберите водителя</option>
-                                    ${driverOptions}
-                                </select>
-                            </div>
-                            <div class="mb-3">
-                                <label for="taskCompletedAt" class="form-label">Дата выполнения</label>
-                                <input type="datetime-local" class="form-control" id="taskCompletedAt" value="${task.completedAt || ''}">
-                            </div>
-                        </form>
-                    `;
+                    <form id="editTaskForm">
+                        <div class="mb-3">
+                            <label for="taskNumber" class="form-label">Номер</label>
+                            <input disabled type="text" class="form-control" id="taskNumber" value="${task.taskNumber || ''}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="taskStatus" class="form-label">Статус</label>
+                            <select class="form-select" id="taskStatus" required>
+                                <option value="EDITING" ${task.status === 'EDITING' ? 'selected' : ''}>⚪ На редактировании</option>
+                                <option value="READY" ${task.status === 'READY' ? 'selected' : ''}>🟢 Готов к исполнению</option>
+                                <option value="IN_PROGRESS" ${task.status === 'IN_PROGRESS' ? 'selected' : ''}>🔵 Выполняется</option>
+                                <option value="COMPLETED" ${task.status === 'COMPLETED' ? 'selected' : ''}>🟡 Завершён</option>
+                                <option value="CLOSED" ${task.status === 'CLOSED' ? 'selected' : ''}>🟢 Закрыт</option>
+                                <option value="CANCELED" ${task.status === 'CANCELED' ? 'selected' : ''}>⚫ Отменён</option>
+                                <option value="ISSUE" ${task.status === 'ISSUE' ? 'selected' : ''}>🔴 Проблема на рейсе</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="taskDriver" class="form-label">Водитель</label>
+                            <select class="form-select" id="taskDriver" required>
+                                <option value="">Выберите водителя</option>
+                                ${driverOptions}
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="taskVehicle" class="form-label">Транспортное средство</label>
+                            <select class="form-select" id="taskVehicle" required>
+                                <option value="">Выберите транспортное средство</option>
+                                ${vehicleOptions}
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="taskCompletedAt" class="form-label">Дата выполнения</label>
+                            <input type="datetime-local" class="form-control" id="taskCompletedAt" value="${task.completedAt || ''}">
+                        </div>
+                    </form>
+                `;
 
                     showModal('Редактирование маршрутного листа', formContent, async () => {
                         const updatedTask = {
                             number: document.getElementById('taskNumber').value,
                             status: document.getElementById('taskStatus').value,
-                            driverId: document.getElementById('taskDriver').value, // изменили на ID водителя
+                            driverId: document.getElementById('taskDriver').value,
+                            vehicleId: document.getElementById('taskVehicle').value,
                             completedAt: document.getElementById('taskCompletedAt').value
                         };
 
@@ -274,7 +290,7 @@ function handleTaskEdit(id) {
                     });
                 })
                 .catch(error => {
-                    console.error('Ошибка при загрузке водителей:', error);
+                    console.error('Ошибка при загрузке данных:', error);
                     showToast('Ошибка', error.message, 'danger');
                 });
         })
@@ -309,10 +325,10 @@ function handleVehicleEdit(id) {
                     <div class="mb-3">
                         <label for="vehicleStatus" class="form-label">Статус</label>
                         <select class="form-select" id="vehicleStatus" required>
-                            <option value="MAINTENANCE_REQUIRED" ${vehicle.status === 'MAINTENANCE_REQUIRED' ? 'selected' : ''}>Требуется ТО</option>
-                            <option value="UNDER_MAINTENANCE" ${vehicle.status === 'UNDER_MAINTENANCE' ? 'selected' : ''}>Проходит ТО</option>
-                            <option value="AVAILABLE" ${vehicle.status === 'AVAILABLE' ? 'selected' : ''}>Свободно</option>
-                            <option value="ON_ROUTE" ${vehicle.status === 'ON_ROUTE' ? 'selected' : ''}>В рейсе</option>
+                            <option value="MAINTENANCE_REQUIRED" ${vehicle.status === 'MAINTENANCE_REQUIRED' ? 'selected' : ''}>🔴 Требуется ТО</option>
+                            <option value="UNDER_MAINTENANCE" ${vehicle.status === 'UNDER_MAINTENANCE' ? 'selected' : ''}>🟠 Проходит ТО</option>
+                            <option value="AVAILABLE" ${vehicle.status === 'AVAILABLE' ? 'selected' : ''}>🟢 Свободно</option>
+                            <option value="ON_ROUTE" ${vehicle.status === 'ON_ROUTE' ? 'selected' : ''}>🔵 В рейсе</option>
                         </select>
                     </div>
                 </form>
@@ -385,10 +401,10 @@ function handleClientEdit(id) {
 async function handleSubtaskEdit(id) {
 
     const subtaskStatusDescriptions = {
-        "PENDING": "В ожидании",
-        "IN_PROGRESS": "Выполняется",
-        "COMPLETED": "Выполнена",
-        "CANCELED": "Отменена"
+        "PENDING": "🟡 В ожидании",
+        "IN_PROGRESS": "🔵 Выполняется",
+        "COMPLETED": "🟢 Выполнена",
+        "CANCELED": "⚫ Отменена"
     };
 
     try {
