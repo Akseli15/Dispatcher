@@ -116,7 +116,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 row.innerHTML = `
                 <td>${index + 1}</td>
                 <td>${subtaskStatusDescriptions[subtask.status] || subtask.status}</td>
-                <td>${subtask.unloadingTime || 'Не завершено'}</td>
+                <td>${formatDateTime(subtask.unloadingTime)}</td>
                 <td>${subtask.client.address || ''}</td>
                 <td>${subtask.client.fullName || ''}</td>
                 <td>${subtask.client.phoneNumber || ''}</td>
@@ -259,3 +259,14 @@ async function loadSubtasks() {
         console.error("Ошибка при загрузке подзадач:", err);
     }
 }
+
+const formatDateTime = (dateTime) => {
+    if (!dateTime) return "Не завершено";
+    const date = new Date(dateTime);
+    const hours = String(date.getHours()).padStart(2, "0");
+    const minutes = String(date.getMinutes()).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const year = date.getFullYear();
+    return `${hours}:${minutes} ${day}.${month}.${year}`;
+};

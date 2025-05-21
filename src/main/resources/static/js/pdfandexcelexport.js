@@ -4,16 +4,20 @@ async function generateRouteList(taskId) {
         const response = await fetch(`/api/subtasks/task/${taskId}`);
         if (!response.ok) throw new Error('Ошибка при получении данных');
         const subtasks = await response.json();
+        const responses = await fetch(`/api/tasks/${taskId}`);
+        if (!responses.ok) throw new Error('Ошибка при получении данных');
+        const tasks = await responses.json();
 
         // 2. Формирование данных для шаблона
         const task = subtasks[0]?.task || {};
+        const taskNumber = tasks.taskNumber || {};
         const data = {
-            documentNumber: task.taskNumber || 'Не указан',
+            documentNumber: taskNumber || 'Не указан',
             organizationName: 'ООО "Транспортные решения"',
-            documentDate: new Date(task.createdAt).toLocaleDateString('ru-RU', {
+            documentDate: new Date(tasks.createdAt).toLocaleDateString('ru-RU', {
                 day: 'numeric', month: 'long', year: 'numeric'
             }),
-            employeeFullName: task.driver?.name || 'Не указан',
+            employeeFullName: tasks.driver?.name || 'Не указан',
             employeePosition: 'Водитель',
             department: 'Транспортный отдел',
             routes: subtasks.map((subtask, index) => ({

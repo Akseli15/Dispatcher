@@ -218,6 +218,9 @@ function handleTaskEdit(id) {
             return res.json();
         })
         .then(task => {
+            // Сохраняем исходный статус задачи
+            const originalStatus = task.status;
+
             // Загружаем водителей и транспорт одновременно
             Promise.all([
                 fetch('/api/drivers').then(res => {
@@ -286,6 +289,32 @@ function handleTaskEdit(id) {
                             completedAt: document.getElementById('taskCompletedAt').value
                         };
 
+                        // Проверяем, изменился ли статус
+                        if (updatedTask.status !== originalStatus) {
+                            const taskLog = {
+                                task: { id: id },
+                                status: updatedTask.status,
+                                statusChangedAt: new Date().toISOString()
+                            };
+
+                            try {
+                                const logResponse = await fetch('/api/task-logs', {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json'
+                                    },
+                                    body: JSON.stringify(taskLog)
+                                });
+
+                                if (!logResponse.ok) {
+                                    throw new Error('Не удалось записать лог изменения статуса');
+                                }
+                            } catch (error) {
+                                console.error('Ошибка при записи лога:', error);
+                                showToast('Ошибка', error.message, 'danger');
+                                return false;
+                            }
+                        }
                         return await sendUpdateRequest(`/api/tasks/${id}`, updatedTask);
                     });
                 })

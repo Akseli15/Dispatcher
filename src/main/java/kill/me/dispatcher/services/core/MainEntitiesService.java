@@ -5,7 +5,9 @@ import kill.me.dispatcher.entities.*;
 import kill.me.dispatcher.entities.statuses.DriverStatus;
 import kill.me.dispatcher.entities.statuses.TaskStatus;
 import kill.me.dispatcher.repos.*;
+import kill.me.dispatcher.services.TelegramBot;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -22,12 +24,15 @@ public class MainEntitiesService {
     private VehicleRepository vehicleRepository;
     private SubtaskRepository subtaskRepository;
 
-    public MainEntitiesService(DispatcherRepository dispatcherRepository, DriverRepository driverRepository, TaskRepository taskRepository, VehicleRepository vehicleRepository, SubtaskRepository subtaskRepository) {
+    private final TelegramBot telegramBot;
+
+    public MainEntitiesService(DispatcherRepository dispatcherRepository, DriverRepository driverRepository, TaskRepository taskRepository, VehicleRepository vehicleRepository, SubtaskRepository subtaskRepository, TelegramBot telegramBot) {
         this.dispatcherRepository = dispatcherRepository;
         this.driverRepository = driverRepository;
         this.taskRepository = taskRepository;
         this.vehicleRepository = vehicleRepository;
         this.subtaskRepository = subtaskRepository;
+        this.telegramBot = telegramBot;
     }
 
     /**
@@ -134,10 +139,27 @@ public class MainEntitiesService {
         return taskRepository.save(task);
     }
 
+    @Transactional
     public Task updateTask(Long id, Task updated) {
         Task existing = taskRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Task not found"));
 
+        // Check if existing status is EDITING and new status is READY
+        if (existing.getStatus() == TaskStatus.EDITING && updated.getStatus() == TaskStatus.READY) {
+            String chatId = existing.getDriver() != null ? existing.getDriver().getChatId() : null;
+            if (chatId != null && existing.getTaskNumber() != null) {
+                try {
+                    telegramBot.sendTaskNotification(chatId, existing.getTaskNumber());
+                } catch (Exception e) {
+                    System.err.println("Ошибка при отправке уведомления в Telegram для задачи №" +
+                            existing.getTaskNumber() + ": " + e.getMessage());
+                }
+            } else {
+                System.err.println("Не удалось отправить уведомление: chatId или taskNumber отсутствует для задачи ID " + id);
+            }
+        }
+
+        // Update fields as in the original method
         if (updated.getStatus() != null) existing.setStatus(updated.getStatus());
         if (updated.getDispatcher() != null) existing.setDispatcher(updated.getDispatcher());
         if (updated.getDriver() != null) existing.setDriver(updated.getDriver());
@@ -162,17 +184,42 @@ public class MainEntitiesService {
 
     // Получение количества выполненных задач за период по водителю
     public long getCompletedTaskCountForDriverBetweenDates(Driver driver, LocalDateTime start, LocalDateTime end) {
-        return taskRepository.countCompletedTasksBetweenDates(driver, start, end);
+        return taskRepository.countCompletedTasksByDriversBetweenDates(driver, start, end);
     }
 
-    // Получение средней продолжительности выполнения задачи по каждому водителю
+    // Получение количества выполненных задач за период по водителю
+    public long getCompletedTaskCountForVehiclesBetweenDates(Vehicle vehicle, LocalDateTime start, LocalDateTime end) {
+        return taskRepository.countCompletedTasksByVehiclesBetweenDates(vehicle, start, end);
+    }
+
+    // Получение средней продолжительности выполнения задачи по каждому водителю (в часах)
     public Map<Long, Double> getAverageTaskDurationByDriver() {
         List<Object[]> results = taskRepository.findAvgTaskDurationByDriver();
         Map<Long, Double> avgDurations = new HashMap<>();
         for (Object[] row : results) {
-            Long driverId = (Long) row[0];
-            Double avgDuration = (Double) row[1]; // в миллисекундах (если cast long → timestamp diff in ms)
-            avgDurations.put(driverId, avgDuration);
+            Long driverId = ((Number) row[0]).longValue(); // Безопасное приведение к Long
+            Double avgDurationMs = ((Number) row[1]).doubleValue(); // Миллисекунды
+            if (avgDurationMs <= 0 || avgDurationMs > 86_400_000_000.0) { // 100 дней в миллисекундах
+                continue;
+            }
+            Double avgDurationHours = avgDurationMs / (1000.0 * 60 * 60); // Преобразование в часы
+            avgDurations.put(driverId, Math.round(avgDurationHours * 100.0) / 100.0); // Округление до 2 знаков
+        }
+        return avgDurations;
+    }
+
+    // Получение средней продолжительности выполнения задачи по каждому водителю (в часах)
+    public Map<Long, Double> getAverageTaskDurationByVehicle() {
+        List<Object[]> results = taskRepository.findAvgTaskDurationByVehicle();
+        Map<Long, Double> avgDurations = new HashMap<>();
+        for (Object[] row : results) {
+            Long driverId = ((Number) row[0]).longValue(); // Безопасное приведение к Long
+            Double avgDurationMs = ((Number) row[1]).doubleValue(); // Миллисекунды
+            if (avgDurationMs <= 0 || avgDurationMs > 86_400_000_000.0) { // 100 дней в миллисекундах
+                continue;
+            }
+            Double avgDurationHours = avgDurationMs / (1000.0 * 60 * 60); // Преобразование в часы
+            avgDurations.put(driverId, Math.round(avgDurationHours * 100.0) / 100.0); // Округление до 2 знаков
         }
         return avgDurations;
     }
@@ -192,6 +239,11 @@ public class MainEntitiesService {
         Integer maxNumber = taskRepository.findMaxTaskNumber();
         int next = (maxNumber != null ? maxNumber : 0) + 1;
         return String.format("%04d", next);
+    }
+
+    // Получение количества задач по статусам
+    public List<Object[]> getTaskCountByStatus() {
+        return taskRepository.countTasksGroupedByAllStatuses();
     }
 
     /**

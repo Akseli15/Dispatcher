@@ -7,6 +7,7 @@ import kill.me.dispatcher.entities.statuses.DriverStatus;
 import kill.me.dispatcher.entities.statuses.TaskStatus;
 import kill.me.dispatcher.repos.DispatcherRepository;
 import kill.me.dispatcher.repos.DriverRepository;
+import kill.me.dispatcher.repos.VehicleRepository;
 import kill.me.dispatcher.services.core.MainEntitiesService;
 import kill.me.dispatcher.services.core.SupEntitiesService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,6 +35,8 @@ public class WebControllers {
     private DriverRepository driverRepository;
     @Autowired
     private DispatcherRepository dispatcherRepository;
+    @Autowired
+    private VehicleRepository vehicleRepository;
 
     // ---------- Dispatcher ----------
     @PostMapping("/dispatchers")
@@ -97,6 +100,22 @@ public class WebControllers {
         service.deleteDriver(id);
     }
 
+    // Получение средней продолжительности выполнения задач по водителям
+    @GetMapping("/drivers/avg-duration")
+    public Map<Long, Double> getAvgTaskDurationByDriver() {
+        return service.getAverageTaskDurationByDriver();
+    }
+
+    // Получение количества выполненных задач по водителю за период
+    @GetMapping("/drivers/completed-count")
+    public long getCompletedTaskCount(
+            @RequestParam Long driverId,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime start,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end) {
+        Driver driver = driverRepository.getById(driverId);
+        return service.getCompletedTaskCountForDriverBetweenDates(driver, start, end);
+    }
+
     // ---------- Task ----------
     @PostMapping("/tasks")
     public Task createTask(@RequestBody Task task) {
@@ -124,22 +143,6 @@ public class WebControllers {
         service.deleteTask(id);
     }
 
-    // Получение количества выполненных задач по водителю за период
-    @GetMapping("/tasks/completed-count")
-    public long getCompletedTaskCount(
-            @RequestParam Long driverId,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime start,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end) {
-        Driver driver = driverRepository.getById(driverId);
-        return service.getCompletedTaskCountForDriverBetweenDates(driver, start, end);
-    }
-
-    // Получение средней продолжительности выполнения задач по водителям
-    @GetMapping("/tasks/avg-duration")
-    public Map<Long, Double> getAvgTaskDurationByDriver() {
-        return service.getAverageTaskDurationByDriver();
-    }
-
     // Фильтрация задач по параметрам
     @GetMapping("/tasks/filter")
     public List<Task> filterTasks(
@@ -154,6 +157,11 @@ public class WebControllers {
         Dispatcher dispatcher = dispatcherRepository.getById(dispatcherId);
 
         return service.filterTasks(status, driver, dispatcher, createdFrom, createdTo, completedFrom, completedTo);
+    }
+
+    @GetMapping("/tasks/status-count")
+    public List<Object[]> getTaskCountByStatus() {
+        return service.getTaskCountByStatus();
     }
 
     // ---------- Vehicle ----------
@@ -180,6 +188,22 @@ public class WebControllers {
     @DeleteMapping("/vehicles/{id}")
     public void deleteVehicle(@PathVariable Long id) {
         service.deleteVehicle(id);
+    }
+
+    // Получение средней продолжительности выполнения задач по ТС
+    @GetMapping("/vehicles/avg-duration")
+    public Map<Long, Double> getAvgTaskDurationByVehicle() {
+        return service.getAverageTaskDurationByVehicle();
+    }
+
+    // Получение количества выполненных задач по водителю за период
+    @GetMapping("/vehicles/completed-count")
+    public long getCompletedTaskCountVehicle(
+            @RequestParam Long vehicleId,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime start,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end) {
+        Vehicle vehicle = vehicleRepository.getById(vehicleId);
+        return service.getCompletedTaskCountForVehiclesBetweenDates(vehicle, start, end);
     }
 
     // ---------- Subtask ----------
