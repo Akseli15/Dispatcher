@@ -23,7 +23,6 @@
                 <div class="sidebar-subitem" data-section="vehicleReports">Транспортные средства</div>
                 <div class="sidebar-subitem" data-section="routeReports">Маршрутные листы</div>
             </div>
-
             <div class="sidebar-item" data-section="routeLog">Журнал маршрутных листов</div>
         </div>
     </div>
@@ -33,7 +32,7 @@
     </form>
 </div>
 
-<p class="username-overlay" >Пользователь:  <strong th:text="${username}"></strong></p>
+<p class="username-overlay">Пользователь: <strong th:text="${username}"></strong></p>
 <div class="main-content">
     <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 20px">
         <h2 style="margin: 0;">Маршрутный лист №<span id="task-number">Загрузка...</span></h2>
@@ -42,22 +41,18 @@
     </div>
 
     <div class="d-flex gap-3 mb-3">
-
         <div class="flex-fill">
             <label for="driverInput" class="form-label">Водитель</label>
             <input type="text" id="driverInput" class="form-control" readonly>
         </div>
-
         <div class="flex-fill">
             <label for="vehicleInput" class="form-label">Транспортное средство</label>
             <input type="text" id="vehicleInput" class="form-control" readonly>
         </div>
-
         <div class="flex-fill">
             <label for="statusInput" class="form-label">Статус</label>
             <input type="text" id="statusInput" class="form-control" readonly>
         </div>
-
     </div>
 
     <table class="table table-bordered table-hover mt-3">
@@ -75,6 +70,43 @@
         <tbody id="subtask-table-body">
         </tbody>
     </table>
+
+    <!-- Блок комментариев -->
+
+    <div class="comments-section mt-4">
+        <div class="card mb-3">
+            <div class="card-body">
+                <form id="comment-form" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <textarea class="form-control" id="comment-text" rows="4" placeholder="Введите комментарий..." required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="comment-photo" class="form-label">Прикрепить фотографию</label>
+                        <input type="file" class="form-control" id="comment-photo" accept="image/*">
+                    </div>
+                    <button type="submit" class="btn btn-primary">Добавить комментарий</button>
+                    <button class="btn-primary" onClick="refreshComments()">Обновить комментарии</button>
+                </form>
+            </div>
+        </div>
+        <div id="comments-list" class="comments-list">
+        </div>
+    </div>
+
+    <!-- Модальное окно для просмотра фото -->
+    <div class="modal fade" id="photoModal" tabindex="-1" aria-labelledby="photoModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="photoModalLabel">Просмотр фото</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <img id="modalPhoto" src="" alt="Фото" class="img-fluid" style="max-height: 70vh; width: auto;">
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <script src="/js/routelist.js"></script>

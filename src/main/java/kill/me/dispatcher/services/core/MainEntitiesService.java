@@ -144,7 +144,6 @@ public class MainEntitiesService {
         Task existing = taskRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Task not found"));
 
-        // Check if existing status is EDITING and new status is READY
         if (existing.getStatus() == TaskStatus.EDITING && updated.getStatus() == TaskStatus.READY) {
             String chatId = existing.getDriver() != null ? existing.getDriver().getChatId() : null;
             if (chatId != null && existing.getTaskNumber() != null) {
@@ -159,7 +158,6 @@ public class MainEntitiesService {
             }
         }
 
-        // Update fields as in the original method
         if (updated.getStatus() != null) existing.setStatus(updated.getStatus());
         if (updated.getDispatcher() != null) existing.setDispatcher(updated.getDispatcher());
         if (updated.getDriver() != null) existing.setDriver(updated.getDriver());

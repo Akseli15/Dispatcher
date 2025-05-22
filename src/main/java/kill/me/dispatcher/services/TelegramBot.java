@@ -1,6 +1,7 @@
 package kill.me.dispatcher.services;
 
 import com.itextpdf.layout.element.Cell;
+import jakarta.annotation.PostConstruct;
 import kill.me.dispatcher.config.BotConfig;
 import kill.me.dispatcher.entities.Driver;
 import kill.me.dispatcher.entities.Subtask;
@@ -10,11 +11,14 @@ import kill.me.dispatcher.services.core.BotService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
+import org.telegram.telegrambots.meta.api.methods.commands.SetMyCommands;
 import org.telegram.telegrambots.meta.api.methods.send.SendDocument;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
 import org.telegram.telegrambots.meta.api.objects.InputFile;
 import org.telegram.telegrambots.meta.api.objects.Update;
+import org.telegram.telegrambots.meta.api.objects.commands.BotCommand;
+import org.telegram.telegrambots.meta.api.objects.commands.scope.BotCommandScopeDefault;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardRemove;
@@ -379,6 +383,11 @@ public class TelegramBot extends TelegramLongPollingBot {
                         message.setReplyMarkup(new ReplyKeyboardRemove(true));
                         message.setReplyMarkup(createStartKeyboard());
                         break;
+                    case "/routelist":
+                        message.setText("📋 " + userName + ", вот ваши маршрутные листы:");
+                        message.setReplyMarkup(new ReplyKeyboardRemove(true));
+                        message.setReplyMarkup(createMainMenuKeyboard(chatId));
+                        break;
                     case "Написать сообщение":
                         message.setText("💬 " + userName + ", напишите ваше сообщение диспетчеру:");
                         break;
@@ -626,7 +635,6 @@ public class TelegramBot extends TelegramLongPollingBot {
             document.setFont(font);
         }
 
-        // Header
         String taskNumber = task.getTaskNumber() != null ? task.getTaskNumber() : "Не указан";
         document.add(new Paragraph(new Text("МАРШРУТНЫЙ ЛИСТ № " + taskNumber))
                 .setBold().setFontSize(13).setUnderline().setTextAlignment(TextAlignment.CENTER));
@@ -636,12 +644,10 @@ public class TelegramBot extends TelegramLongPollingBot {
         document.add(new Paragraph("на \"" + taskDate + "\"")
                 .setTextAlignment(TextAlignment.CENTER).setMarginBottom(20));
 
-        // Worker Info
         String driverName = task.getDriver() != null && task.getDriver().getName() != null ? task.getDriver().getName() : "Не указан";
         document.add(new Paragraph("Работник: " + driverName));
         document.add(new Paragraph("Должность: Водитель (Транспортный отдел)").setMarginBottom(15));
 
-        // Routes Table
         float[] columnWidths = {30, 100, 100, 80, 80, 50, 50};
         Table table = new Table(UnitValue.createPointArray(columnWidths));
         table.addHeaderCell("№");
@@ -653,7 +659,7 @@ public class TelegramBot extends TelegramLongPollingBot {
         table.addHeaderCell("Подпись");
 
         if (subtasks == null || subtasks.isEmpty()) {
-            Cell noSubtasksCell = new Cell(1, 7); // Span across 7 columns
+            Cell noSubtasksCell = new Cell(1, 7);
             noSubtasksCell.add(new Paragraph("Нет пунктов маршрута").setTextAlignment(TextAlignment.CENTER));
             table.addCell(noSubtasksCell);
         } else {
@@ -670,12 +676,24 @@ public class TelegramBot extends TelegramLongPollingBot {
         }
         document.add(table);
 
-        // Signature
         document.add(new Paragraph("Маршрутный лист сформирован \"" + java.time.LocalDate.now().format(DATE_FORMATTER) +
                 "\" в " + java.time.LocalTime.now().format(TIME_FORMATTER))
                 .setTextAlignment(TextAlignment.RIGHT).setMarginTop(30));
 
         document.close();
         return baos.toByteArray();
+    }
+
+    @PostConstruct
+    public void initCommands() {
+        List<BotCommand> commandList = new ArrayList<>();
+        commandList.add(new BotCommand("/start", "Запуск бота"));
+        commandList.add(new BotCommand("/routelist", " Вернёт Вам список назначенных маршрутных листов"));
+
+        try {
+            execute(new SetMyCommands(commandList, new BotCommandScopeDefault(), null));
+        } catch (TelegramApiException e) {
+            e.printStackTrace();
+        }
     }
 }

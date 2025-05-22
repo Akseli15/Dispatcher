@@ -30,6 +30,9 @@ public class Comment {
     @JoinColumn(name = "task_id", referencedColumnName = "id", nullable = false)
     private Task task;
 
+    @Column(name = "photo_url")
+    private String photoUrl;
+
     public Long getId() {
         return id;
     }
@@ -64,5 +67,13 @@ public class Comment {
 
     public void setTask(Task task) {
         this.task = task;
+    }
+
+    public String getPhotoUrl() {
+        return photoUrl;
+    }
+
+    public void setPhotoUrl(String photoUrl) {
+        this.photoUrl = photoUrl;
     }
 }

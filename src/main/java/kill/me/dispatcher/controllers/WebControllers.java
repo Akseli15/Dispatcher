@@ -12,11 +12,13 @@ import kill.me.dispatcher.services.core.MainEntitiesService;
 import kill.me.dispatcher.services.core.SupEntitiesService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -238,9 +240,21 @@ public class WebControllers {
     }
 
     // ---------- Comment ----------
-    @PostMapping("/comments")
-    public Comment createComment(@RequestBody Comment comment) {
-        return supService.createComment(comment);
+    @PostMapping(value = "/comments", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public Comment createComment(
+            @RequestPart("text") String text,
+            @RequestPart("taskId") String taskId,
+            @RequestPart("authorFullName") String authorFullName,
+            @RequestPart(value = "photo", required = false) MultipartFile photo) {
+        Comment comment = new Comment();
+        comment.setText(text);
+        comment.setAuthorFullName(authorFullName);
+        return supService.createComment(comment, photo, Long.parseLong(taskId));
+    }
+
+    @GetMapping("/comments/task/{taskId}")
+    public List<Comment> getCommentsByTask(@PathVariable Long taskId) {
+        return supService.getCommentsByTaskId(taskId);
     }
 
     @GetMapping("/comments")
