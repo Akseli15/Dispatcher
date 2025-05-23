@@ -6,6 +6,7 @@ import kill.me.dispatcher.entities.Task;
 import kill.me.dispatcher.entities.logs.VehicleLog;
 import kill.me.dispatcher.entities.logs.TaskLog;
 import kill.me.dispatcher.repos.*;
+import kill.me.dispatcher.services.TelegramBot;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -28,12 +29,15 @@ public class SupEntitiesService {
     private TaskLogRepository taskLogRepository;
     private TaskRepository taskRepository;
 
-    public SupEntitiesService(CommentRepository commentRepository, ClientRepository clientRepository, VehicleLogRepository vehicleLogRepository, TaskLogRepository taskLogRepository, TaskRepository taskRepository) {
+    private final TelegramBot telegramBot;
+
+    public SupEntitiesService(CommentRepository commentRepository, ClientRepository clientRepository, VehicleLogRepository vehicleLogRepository, TaskLogRepository taskLogRepository, TaskRepository taskRepository, TelegramBot telegramBot) {
         this.commentRepository = commentRepository;
         this.clientRepository = clientRepository;
         this.vehicleLogRepository = vehicleLogRepository;
         this.taskLogRepository = taskLogRepository;
         this.taskRepository = taskRepository;
+        this.telegramBot = telegramBot;
     }
 
     /**
@@ -42,7 +46,6 @@ public class SupEntitiesService {
 
 
     public Comment createComment(Comment comment, MultipartFile photo, Long taskId) {
-
         // Устанавливаем задачу
         Task task = taskRepository.findById(taskId)
                 .orElseThrow(() -> new RuntimeException("Task not found"));
@@ -52,20 +55,38 @@ public class SupEntitiesService {
         comment.setCreatedAt(LocalDateTime.now());
 
         // Обработка фотографии
+        String photoUrl = null;
         if (photo != null && !photo.isEmpty()) {
             try {
                 String fileName = UUID.randomUUID().toString() + "_" + photo.getOriginalFilename();
                 Path filePath = Paths.get("E:/Университет/4 курс/8 семестр/Диплом/dispatcher/uploads/comments", fileName);
                 Files.createDirectories(filePath.getParent());
                 Files.write(filePath, photo.getBytes());
-                String photoUrl = "/uploads/comments/" + fileName;
+                photoUrl = "/uploads/comments/" + fileName;
                 comment.setPhotoUrl(photoUrl);
             } catch (IOException e) {
                 throw new RuntimeException("Failed to save photo", e);
             }
         }
 
-        return commentRepository.save(comment);
+        Comment savedComment = commentRepository.save(comment);
+
+        if (task.getDriver() != null && task.getDriver().getChatId() != null) {
+            try {
+                telegramBot.sendTelegramNotification(
+                        task.getDriver().getChatId(),
+                        task.getTaskNumber(),
+                        comment.getText(),
+                        photoUrl
+                );
+            } catch (Exception e) {
+                // Логируем ошибку, но не прерываем выполнение
+            }
+        } else {
+            System.out.println("Driver or Telegram ID not found for task " + taskId);
+        }
+
+        return savedComment;
     }
 
     public List<Comment> getCommentsByTaskId(Long taskId) {

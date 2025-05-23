@@ -63,7 +63,7 @@ async function loadComments(taskId) {
             return;
         }
 
-        comments.forEach(comment => {
+        [...comments].reverse().forEach(comment => {
             const commentDiv = document.createElement('div');
             commentDiv.className = 'card mb-2';
             let photoHtml = '';

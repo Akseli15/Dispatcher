@@ -143,12 +143,34 @@ public class MainEntitiesService {
     public Task updateTask(Long id, Task updated) {
         Task existing = taskRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Task not found"));
+        String chatId = existing.getDriver() != null ? existing.getDriver().getChatId() : null;
 
         if (existing.getStatus() == TaskStatus.EDITING && updated.getStatus() == TaskStatus.READY) {
-            String chatId = existing.getDriver() != null ? existing.getDriver().getChatId() : null;
             if (chatId != null && existing.getTaskNumber() != null) {
                 try {
                     telegramBot.sendTaskNotification(chatId, existing.getTaskNumber());
+                } catch (Exception e) {
+                    System.err.println("Ошибка при отправке уведомления в Telegram для задачи №" +
+                            existing.getTaskNumber() + ": " + e.getMessage());
+                }
+            } else {
+                System.err.println("Не удалось отправить уведомление: chatId или taskNumber отсутствует для задачи ID " + id);
+            }
+        } else if (existing.getStatus() != TaskStatus.CANCELED && updated.getStatus() == TaskStatus.CANCELED){
+            if (chatId != null && existing.getTaskNumber() != null) {
+                try {
+                    telegramBot.sendTaskCanceledNotification(chatId, existing.getTaskNumber());
+                } catch (Exception e) {
+                    System.err.println("Ошибка при отправке уведомления в Telegram для задачи №" +
+                            existing.getTaskNumber() + ": " + e.getMessage());
+                }
+            } else {
+                System.err.println("Не удалось отправить уведомление: chatId или taskNumber отсутствует для задачи ID " + id);
+            }
+        } else if (existing.getStatus() != TaskStatus.CLOSED && updated.getStatus() == TaskStatus.CLOSED){
+            if (chatId != null && existing.getTaskNumber() != null) {
+                try {
+                    telegramBot.sendTaskClosedNotification(chatId, existing.getTaskNumber());
                 } catch (Exception e) {
                     System.err.println("Ошибка при отправке уведомления в Telegram для задачи №" +
                             existing.getTaskNumber() + ": " + e.getMessage());
